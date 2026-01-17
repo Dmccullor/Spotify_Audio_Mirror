@@ -7,7 +7,7 @@ BUFFER_SIZE = 2048
 SAMPLE_RATE = 48000 
 CHANNELS = 2 
 GAIN = 1.0 
-VB_CABLE_INPUT_INDEX = 35  # CABLE Output (VB-Audio Virtual Cable)
+VB_CABLE_INPUT_INDEX = None  # CABLE Output (VB-Audio Virtual Cable)
 #SPOTIFY CHECK
 def is_spotify_running(): return any("spotify.exe" in p.name().lower() for p in psutil.process_iter())
 #INIT
@@ -23,6 +23,16 @@ for i in range(p.get_device_count()):
         break
 if default_index is None: 
     raise RuntimeError("Could not find a usable playback device.")
+for i in range(p.get_device_count()):
+    info = p.get_device_info_by_index(i)
+    if (
+    info['maxInputChannels'] == 2 and
+    info['maxOutputChannels'] == 0 and
+    "cable" in info['name'].lower() and
+    "output" in info['name'].lower()):
+        VB_CABLE_INPUT_INDEX = i
+if VB_CABLE_INPUT_INDEX is None:
+    raise RuntimeError("Could not find a usable input device.")
 
 print("Waiting for Spotify to start...") 
 while not is_spotify_running(): 
