@@ -48,14 +48,20 @@ stream_out = p.open(format=pyaudio.paFloat32, channels=CHANNELS, rate=SAMPLE_RAT
 
 #MAIN LOOP
 try: 
-    while True: 
+    while True:
+        if not is_spotify_running():
+            print("spotify closed. Exiting script.")
+            break
+
         data = stream_in.read(BUFFER_SIZE, exception_on_overflow=False) 
         samples = np.frombuffer(data, dtype=np.float32) 
         boosted = np.clip(samples * GAIN, -1.0, 1.0).astype(np.float32).tobytes() 
         stream_out.write(boosted) 
-except KeyboardInterrupt: print("Stopping...") 
-finally: stream_in.stop_stream() 
-stream_in.close() 
-stream_out.stop_stream() 
-stream_out.close() 
-p.terminate()
+except KeyboardInterrupt:
+    print("Stopping...") 
+finally:
+    stream_in.stop_stream() 
+    stream_in.close() 
+    stream_out.stop_stream() 
+    stream_out.close() 
+    p.terminate()
